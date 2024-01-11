@@ -12,7 +12,6 @@ class HomeController extends GetxController {
   //TODO: Implement HomeController
   TextEditingController search = TextEditingController();
   List<DataBuku> buku = [];
-  List<DataBuku> filter = [];
   RxInt jumlahFilter = 0.obs;
 
   Future<List<DataBuku>> readJson() async {
@@ -21,35 +20,71 @@ class HomeController extends GetxController {
     final data = await json.decode(response);
     final rawData = data["data"];
 
-    List<DataBuku> buku = [];
+    // List<DataBuku> buku = [];
 
     for (var rawBook in rawData) {
       final books = DataBuku.fromJson(rawBook);
       buku.add(books);
     }
 
+    print("search: ${search.text}");
+    if (search.text.isNotEmpty) {
+      List<DataBuku> filteredBuku = buku;
+      if (search.text.isNotEmpty) {
+        filteredBuku = buku
+            .where((element) =>
+                element.title.toLowerCase().contains(search.text.toLowerCase()))
+            .toList();
+      }
+
+      return filteredBuku;
+    }
+
     return buku;
   }
 
   getSearch() {
-    filter = buku
-        .where((element) => element.title.toLowerCase().contains(search.text))
-        .toList();
-    buku
-        .where((element) => element.author.toLowerCase().contains(search.text))
-        .toList();
-    buku
-        .where(
-            (element) => element.category.toLowerCase().contains(search.text))
-        .toList();
-    buku
-        .where(
-            (element) => element.publisher.toLowerCase().contains(search.text))
+    print("buku.lengt:${buku.length}");
+    // Initial copy of the original buku list
+    List<DataBuku> filteredBuku = List.from(buku);
+
+    // Filter by title
+    filteredBuku = buku
+        .where((element) =>
+            element.title.toLowerCase().contains(search.text.toLowerCase()))
         .toList();
 
+    // Filter by author
+    // filteredBuku = filteredBuku
+    //     .where((element) =>
+    //         element.author.toLowerCase().contains(search.text.toLowerCase()))
+    //     .toList();
+
+    // // Filter by category
+    // filteredBuku = filteredBuku
+    //     .where((element) =>
+    //         element.category.toLowerCase().contains(search.text.toLowerCase()))
+    //     .toList();
+
+    // // Filter by publisher
+    // filteredBuku = filteredBuku
+    //     .where((element) =>
+    //         element.publisher.toLowerCase().contains(search.text.toLowerCase()))
+    //     .toList();
+
+    // Update buku list with filtered results
+    // buku = filteredBuku;
+
+    // Print and update the count
     print("ok");
-    print(filter.length);
-    jumlahFilter.value = filter.length;
+    print(filteredBuku.length);
+    jumlahFilter.value = filteredBuku.length;
+  }
+
+  List<DataBuku> searchBuku(String jsonString) {
+    final Map<String, dynamic> data = json.decode(jsonString);
+    final List<dynamic> booksData = data['data'];
+    return booksData.map((bookData) => DataBuku.fromJson(bookData)).toList();
   }
 
   final count = 0.obs;
